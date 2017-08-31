@@ -7,8 +7,8 @@ NODES_COUNT = 34
 COMMIUNITIES_COUNT = 5
 INITIAL_T = 0
 EDGE_COUNT = 0
-INITIAL_POPULATION = 5
-INITIAL_GENERATION = 2000
+INITIAL_POPULATION = 20
+INITIAL_GENERATION = 200
 
 
 def loadData(fileName):
@@ -153,13 +153,13 @@ def findClusters(population, graph, degree):
         population, report[i] = generateNewPop(population, T)
         T /= 2
     sorted(population, key=lambda x: x[1])
-    return population[-1]#,report
+    return population[-1],report
 
 graph, degree = loadData(FILE_NAME)
 for i in range(NODES_COUNT):
     EDGE_COUNT += degree[i]
-'''report = [[0.,0.] for i in range(INITIAL_GENERATION)]
-for k in range(100):
+report = [[0., 0.] for i in range(INITIAL_GENERATION)]
+for k in range(200):
     population = [[randrange(1, COMMIUNITIES_COUNT + 1) for i in range(NODES_COUNT)] for j in range(INITIAL_POPULATION)]
     for i in range(len(population)):
         population[i] = population[i], fitnessFunction(population[i], graph, degree)
@@ -168,10 +168,11 @@ for k in range(100):
         report[i][0] += rep[i][0]
         report[i][1] += rep[i][1]
 for t in report:
-    print t[0], '\t', t[1]'''
+    print t[0] / 200, '\t', t[1] / 200
 
+'''
 population = [[randrange(1, COMMIUNITIES_COUNT + 1) for i in range(NODES_COUNT)] for j in range(INITIAL_POPULATION)]
 for i in range(len(population)):
     population[i] = population[i], fitnessFunction(population[i], graph, degree)
 clusters = findClusters(population, graph, degree)
-print clusters
+print clusters'''
