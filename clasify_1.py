@@ -7,7 +7,7 @@ NODES_COUNT = 34
 COMMIUNITIES_COUNT = 5
 INITIAL_T = 0
 EDGE_COUNT = 0
-INITIAL_POPULATION = 20
+INITIAL_POPULATION = 5
 INITIAL_GENERATION = 200
 
 def loadData(fileName):
@@ -30,9 +30,12 @@ def fitnessFunction(people, graph, degree):
     for i in range(NODES_COUNT):
         for j in range(i):
             if people[i] == people[j]:
-                    Q += graph[i][j] - (degree[i] * degree[j] * 1.0) / EDGE_COUNT
-    Q = 2 * Q / EDGE_COUNT
-    return Q + 1
+                Q += graph[i][j] - (degree[i] * degree[j] * 1.0) / EDGE_COUNT
+    Q = Q * 2
+    for i in range(NODES_COUNT):
+        Q += 1 - (degree[i] ** 2 * 1.0) / EDGE_COUNT
+    Q = Q / EDGE_COUNT
+    return Q
 
 def findPerson(population, p):
     for i in range(len(population)):
@@ -49,7 +52,7 @@ def selectParents(population):
     dadIndex = findPerson(population, p1)
     p2 = random() * sumQ
     momIndex = findPerson(population, p2)
-    return momIndex, dadIndex, (sumQ *1.0 / len(population))
+    return momIndex, dadIndex, (sumQ * 1.0 / len(population))
 
 def generateChild(mom, dad):
     child = dad[:]
@@ -119,11 +122,10 @@ def semulatedAnnealing(old1, old2, new1, new2, T):
 def generateNewPop(population, T):
     report = [0., 0.]
     population = sorted(population, key=lambda x: x[1])
-    report[0] = population[-1][1] - 1
+    report[0] = population[-1][1]
     newPop = []
     while len(newPop) < INITIAL_POPULATION:
         momIndex , dadIndex, report[1] = selectParents(population)
-        report[1] -= 1
         mom = population[momIndex]
         dad = population[dadIndex]
         firstChild, secondChild = geneticAlg(mom[0], dad[0])
@@ -166,4 +168,4 @@ for i in range(len(population)):
     population[i] = population[i], fitnessFunction(population[i], graph, degree)
 '''
 #clusters = findClusters(population, graph, degree)
-#print clusters
+#print clusters[0]
