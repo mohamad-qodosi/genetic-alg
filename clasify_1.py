@@ -1,5 +1,4 @@
 from random import *
-
 import math
 
 FILE_NAME = 'karate.paj'
