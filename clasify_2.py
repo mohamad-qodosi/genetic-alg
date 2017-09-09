@@ -3,11 +3,12 @@ import math
 
 FILE_NAME = 'karate.paj'
 NODES_COUNT = 34
-COMMIUNITIES_COUNT = 5
-INITIAL_T = 0
+COMMIUNITIES_COUNT = 2
+INITIAL_T = 10000
 EDGE_COUNT = 0
-INITIAL_POPULATION = 5
+INITIAL_POPULATION = 10
 INITIAL_GENERATION = 200
+RIGHT_ANSWER = [1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 2, 2, 1, 1, 2, 1, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
 
 
 def loadData(fileName):
@@ -39,6 +40,29 @@ def fitnessFunction(people, graph, degree):
     return Q
 
 
+def NMI(clustering1, clustering2):
+    c1Max = max(clustering1)
+    c2Max = max(clustering2)
+    c1Min = min(clustering1)
+    c2Min = min(clustering2)
+    clustering1Count = [0] * (c1Max - c1Min + 1)
+    clustering2Count = [0] * (c2Max - c2Min + 1)
+    for i in range(NODES_COUNT):
+        clustering1Count[clustering1[i] - c1Min] += 1
+        clustering2Count[clustering2[i] - c2Min] += 1
+
+    z = 0.
+    for i in range(c1Min, c1Max + 1):
+        for j in range(c2Min, c2Max + 1):
+            sameClusters = 0
+            for k in range(NODES_COUNT):
+                if clustering1[k] == i and clustering2[k] == j:
+                    sameClusters += 1
+            if sameClusters != 0:
+                z += (sameClusters * 1.0 / NODES_COUNT) * math.log((NODES_COUNT * sameClusters * 1.0) / (clustering1Count[i - c1Min] * clustering2Count[j - c2Min]))
+    return z
+
+
 def findPerson(population, p):
     for i in range(len(population)):
         if p < population[i][1]:
@@ -49,13 +73,15 @@ def findPerson(population, p):
 
 def selectParents(population):
     sumQ = 0.
+    sumNMI = 0.
     for people in population:
         sumQ += people[1]
+        sumNMI += NMI(people[0], RIGHT_ANSWER)
     p1 = random() * sumQ
     dadIndex = findPerson(population, p1)
     p2 = random() * sumQ
     momIndex = findPerson(population, p2)
-    return momIndex, dadIndex, (sumQ *1.0 / len(population))
+    return momIndex, dadIndex, (sumNMI * 1.0 / len(population))
 
 
 def generateChilds(mom, dad, crossOverPattern):
@@ -70,7 +96,7 @@ def generateChilds(mom, dad, crossOverPattern):
 
 def immutate(genome):
     place = randrange(NODES_COUNT)
-    immutatedValue = randrange(COMMIUNITIES_COUNT)
+    immutatedValue = randrange(1, COMMIUNITIES_COUNT + 1)
     genome[place] = immutatedValue
 
 
@@ -130,7 +156,7 @@ def semulatedAnnealing(old1, old2, new1, new2, T):
 def generateNewPop(population, T):
     report = [0., 0.]
     population = sorted(population, key=lambda x: x[1])
-    report[0] = population[-1][1]
+    report[0] = NMI(population[-1][0], RIGHT_ANSWER)
     newPop = []
     while len(newPop) < INITIAL_POPULATION:
         momIndex , dadIndex, report[1] = selectParents(population)
@@ -177,4 +203,5 @@ population = [[randrange(1, COMMIUNITIES_COUNT + 1) for i in range(NODES_COUNT)]
 for i in range(len(population)):
     population[i] = population[i], fitnessFunction(population[i], graph, degree)
 clusters = findClusters(population, graph, degree)
-print clusters'''
+print clusters
+print (RIGHT_ANSWER, fitnessFunction(RIGHT_ANSWER, graph, degree))'''
