@@ -1,9 +1,11 @@
 from random import *
 import numpy as np
+import time
 
 FILE_NAME = 'karate.paj'
 NODES_COUNT = 34
-LAYERS = [34, 30, 25, 20, 15, 10, 4, 10, 15, 20, 25, 30, 34]
+ALPHA = 0.1
+LAYERS = [34, 16, 8, 4, 8, 16, 34]
 
 
 def loadData(fileName):
@@ -59,6 +61,7 @@ def backpropagation(x, w, y):
     deltaW[0] = (a[0].transpose().dot(sigma[1])) / x.shape[0]
     return deltaW
 
+
 def gradientChecking(x, w, y, e):
     deltaW = [np.array([[0. for k in range(len(w[i][j]))] for j in range(len(w[i]))]) for i in range(len(w))]
     for i in range(len(w)):
@@ -74,11 +77,48 @@ def gradientChecking(x, w, y, e):
     return deltaW
 
 
+def getSize(w):
+    s = 0.
+    for i in w:
+        for j in i:
+            for k in j:
+                s += k ** 2
+    return s ** 0.5
+
 graph, degree = loadData(FILE_NAME)
 x = np.array(graph)
 y = x
-seed(1)
 w = [np.array([[(random() * 2) - 0.5 for i in range(LAYERS[k + 1])] for j in range(LAYERS[k] + 1)]) for k in range(len(LAYERS) - 1)]
-print crossEntropyCostFunction(x, w, y)
-
 for i in range(len(w) / 2):
+    #wPartial = [w[i], w[len(w) - i - 1]]
+    #xPartial = feedForward(x, w[:i])
+    newCost = crossEntropyCostFunction(feedForward(x, w[:i]), [w[i], w[len(w) - i - 1]], feedForward(x, w[:i]))
+    prevCost = 1 + newCost
+    while prevCost - newCost > 0.0001:
+        deltaW = backpropagation(feedForward(x, w[:i]), [w[i], w[len(w) - i - 1]], feedForward(x, w[:i]))
+        w[i] -= ALPHA * deltaW[0]
+        w[len(w) - i - 1] -= ALPHA * deltaW[1]
+        prevCost = newCost
+        newCost = crossEntropyCostFunction(feedForward(x, w[:i]), [w[i], w[len(w) - i - 1]], feedForward(x, w[:i]))
+    if prevCost < newCost:
+        print "Large Alpha"
+
+newCost = crossEntropyCostFunction(x, w, x)
+prevCost = 1 + newCost
+while prevCost - newCost > 0.0000001:
+    deltaW = backpropagation(x, w, x)
+    for i in range(len(w)):
+        w[i] -= ALPHA * deltaW[i]
+    prevCost = newCost
+    newCost = crossEntropyCostFunction(x, w, x)
+if prevCost < newCost:
+    print "Large Alpha"
+
+print crossEntropyCostFunction(x, w, x)
+userGroupFuzy = feedForward(x, w[:len(w) / 2])
+for i in range(len(userGroupFuzy)):
+    maxIndex = 0
+    for j in range(len(userGroupFuzy[i])):
+        if userGroupFuzy[i][maxIndex] > userGroupFuzy[i][j]:
+            maxIndex = j
+    print i + 1, ' - ', maxIndex
